@@ -1,0 +1,245 @@
+--==================================================
+
+-- SAFE SCRIPT SELECTOR + MINI RESET (CLEAN + MUTE)
+
+--==================================================
+
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- File lưu lựa chọn
+
+local SaveFile = "HACKBORY_SCRIPT_SELECT.txt"
+
+--==================================================
+
+-- CHẶN THÔNG BÁO TOXIC (FREE CC / TỰ MUA...)
+
+--==================================================
+
+local oldPrint = print
+
+local oldWarn = warn
+
+local function isBlocked(msg)
+
+    msg = tostring(msg):lower()
+
+    return msg:find("xài free")
+
+        or msg:find("free cc")
+
+        or msg:find("tự mua")
+
+        or msg:find("đừng dùng free")
+
+end
+
+print = function(...)
+
+    if not isBlocked(...) then
+
+        oldPrint(...)
+
+    end
+
+end
+
+warn = function(...)
+
+    if not isBlocked(...) then
+
+        oldWarn(...)
+
+    end
+
+end
+
+--==================================================
+
+-- LINK SCRIPT (GIỮ NGUYÊN)
+
+--==================================================
+
+local Scripts = {
+
+    bth = "https://raw.githubusercontent.com/BRYSHADOW/BRY/main/songthanbryVmot",
+
+    premium = "https://raw.githubusercontent.com/BRYSHADOW/BRY/main/songthanbryVhai"
+
+}
+
+local function SafeLoad(url)
+
+    local src = game:HttpGet(url)
+
+    if not src or #src < 20 then
+
+        warn("[ERROR] Script lỗi hoặc rỗng")
+
+        return
+
+    end
+
+    local fn = loadstring(src)
+
+    if fn then
+
+        fn()
+
+    end
+
+end
+
+--==================================================
+
+-- MINI RESET GUI
+
+--==================================================
+
+local function CreateMiniReset()
+
+    if game.CoreGui:FindFirstChild("MiniResetGUI") then
+
+        game.CoreGui.MiniResetGUI:Destroy()
+
+    end
+
+    local gui = Instance.new("ScreenGui", game.CoreGui)
+
+    gui.Name = "MiniResetGUI"
+
+    local btn = Instance.new("TextButton", gui)
+
+    btn.Size = UDim2.new(0, 70, 0, 25)
+
+    btn.Position = UDim2.new(0, 6, 0, 6)
+
+    btn.Text = "RESET"
+
+    btn.BackgroundColor3 = Color3.fromRGB(140, 30, 30)
+
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+
+    btn.Font = Enum.Font.GothamBold
+
+    btn.TextSize = 12
+
+    btn.BorderSizePixel = 0
+
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
+
+    btn.MouseButton1Click:Connect(function()
+
+        if isfile(SaveFile) then
+
+            delfile(SaveFile)
+
+        end
+
+        gui:Destroy()
+
+        task.wait(0.2)
+
+        warn("[SAFE] Reset xong, inject lại selector.")
+
+    end)
+
+end
+
+CreateMiniReset()
+
+--==================================================
+
+-- AUTO LOAD SCRIPT ĐÃ CHỌN
+
+--==================================================
+
+if isfile(SaveFile) then
+
+    local key = readfile(SaveFile)
+
+    if Scripts[key] then
+
+        SafeLoad(Scripts[key])
+
+        return
+
+    end
+
+end
+
+--==================================================
+
+-- SELECTOR GUI
+
+--==================================================
+
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+
+ScreenGui.Name = "SelectorGUI"
+
+local Frame = Instance.new("Frame", ScreenGui)
+
+Frame.Size = UDim2.new(0, 300, 0, 190)
+
+Frame.Position = UDim2.new(0.5, -150, 0.5, -95)
+
+Frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+
+Frame.Active = true
+
+Frame.Draggable = true
+
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,12)
+
+local Title = Instance.new("TextLabel", Frame)
+
+Title.Size = UDim2.new(1,0,0,40)
+
+Title.BackgroundTransparency = 1
+
+Title.Text = "HACKBORY - CHỌN SCRIPT"
+
+Title.TextColor3 = Color3.fromRGB(255,80,80)
+
+Title.Font = Enum.Font.GothamBold
+
+Title.TextSize = 16
+
+local function CreateButton(text, posY, key)
+
+    local btn = Instance.new("TextButton", Frame)
+
+    btn.Size = UDim2.new(0.85,0,0,40)
+
+    btn.Position = UDim2.new(0.075,0,0,posY)
+
+    btn.Text = text
+
+    btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+
+    btn.Font = Enum.Font.GothamBold
+
+    btn.TextSize = 14
+
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
+
+    btn.MouseButton1Click:Connect(function()
+
+        writefile(SaveFile, key)
+
+        ScreenGui:Destroy()
+
+        SafeLoad(Scripts[key])
+
+    end)
+
+end
+
+CreateButton("▶ BTH (Miễn Phí)", 60, "bth")
+
+CreateButton("★ PREMIUM (VIP)", 115, "premium")
