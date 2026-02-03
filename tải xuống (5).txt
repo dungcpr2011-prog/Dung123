@@ -1,0 +1,89 @@
+-- ⚙️ CONFIG
+
+local EventGateName = "EventGate" -- đổi nếu cổng event tên khác
+
+local AutoHopDelay = 5 -- giây chờ trước khi đổi server
+
+-- 📦 SERVICES
+
+local Players = game:GetService("Players")
+
+local TeleportService = game:GetService("TeleportService")
+
+local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- 🧍‍♂️ Đợi nhân vật
+
+repeat task.wait() until LocalPlayer.Character
+
+local Character = LocalPlayer.Character
+
+local HRP = Character:WaitForChild("HumanoidRootPart")
+
+-- 🚪 TELEPORT ĐẾN CỔNG EVENT
+
+for _, v in pairs(workspace:GetDescendants()) do
+
+    if v.Name == EventGateName and v:IsA("BasePart") then
+
+        HRP.CFrame = v.CFrame + Vector3.new(0, 3, 0)
+
+        print("✅ Đã dịch chuyển tới cổng event")
+
+        break
+
+    end
+
+end
+
+-- 🎁 AUTO NHẬN QUÀ (THỬ CLICK / PROXIMITYPROMPT)
+
+for _, v in pairs(workspace:GetDescendants()) do
+
+    if v:IsA("ProximityPrompt") then
+
+        fireproximityprompt(v)
+
+    end
+
+end
+
+print("🎁 Đã thử nhận quà event")
+
+-- 🔄 SERVER HOP
+
+task.wait(AutoHopDelay)
+
+local function ServerHop()
+
+    local PlaceId = game.PlaceId
+
+    local Servers = HttpService:JSONDecode(
+
+        game:HttpGet(
+
+            "https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+
+        )
+
+    )
+
+    for _, server in pairs(Servers.data) do
+
+        if server.playing < server.maxPlayers then
+
+            TeleportService:TeleportToPlaceInstance(PlaceId, server.id, LocalPlayer)
+
+            break
+
+        end
+
+    end
+
+end
+
+print("🔄 Đang đổi server...")
+
+ServerHop()
