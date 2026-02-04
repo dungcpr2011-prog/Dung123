@@ -1,0 +1,107 @@
+local TweenService = game:GetService("TweenService")
+
+local Debris = game:GetService("Debris")
+
+local Players = game:GetService("Players")
+
+local TsunamiEvent = game.ReplicatedStorage:WaitForChild("TsunamiEvent")
+
+-- CONFIG
+
+local TSUNAMI_HEIGHT = 120
+
+local TSUNAMI_WIDTH = 600
+
+local TSUNAMI_DEPTH = 200
+
+local TSUNAMI_SPEED = 120 -- studs/giây
+
+local DAMAGE = 15
+
+function createTsunami(startPos, endPos)
+
+	-- Tạo sóng	local wave = Instance.new("Part")
+
+	wave.Size = Vector3.new(TSUNAMI_WIDTH, TSUNAMI_HEIGHT, TSUNAMI_DEPTH)
+
+	wave.Position = startPos
+
+	wave.Anchored = true
+
+	wave.Material = Enum.Material.Water
+
+	wave.Color = Color3.fromRGB(0, 85, 127)
+
+	wave.Transparency = 0.15
+
+	wave.Name = "Tsunami"
+
+	wave.Parent = workspace
+
+	-- Tween di chuyển
+
+	local distance = (startPos - endPos).Magnitude
+
+	local travelTime = distance / TSUNAMI_SPEED
+
+	local tween = TweenService:Create(
+
+		wave,
+
+		TweenInfo.new(travelTime, Enum.EasingStyle.Linear),
+
+		{Position = endPos}
+
+	)
+
+	-- Gây sát thương & phá map
+
+	local touchConn
+
+	touchConn = wave.Touched:Connect(function(hit)
+
+		local humanoid = hit.Parent:FindFirstChild("Humanoid")
+
+		if humanoid then
+
+			humanoid:TakeDamage(DAMAGE)
+
+		end
+
+		-- Phá công trình
+
+		if hit:IsA("BasePart") and hit.Anchored == false then
+
+			hit:BreakJoints()
+
+		end
+
+	end)
+
+	tween:Play()
+
+	tween.Completed:Wait()
+
+	if touchConn then
+
+		touchConn:Disconnect()
+
+	end
+
+	wave:Destroy()
+
+end
+
+-- Khi gọi RemoteEvent
+
+TsunamiEvent.OnServerEvent:Connect(function(player)
+
+	local mapCenter = workspace:GetModelCFrame().Position
+
+	local startPos = mapCenter + Vector3.new(0, TSUNAMI_HEIGHT/2, -800)
+
+	local endPos = mapCenter + Vector3.new(0, TSUNAMI_HEIGHT/2, 800)
+
+	createTsunami(startPos, endPos)
+
+end)
